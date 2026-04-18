@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log in to the site | IoT-SPMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col min-h-screen bg-[#f0f2f5] font-sans overflow-x-hidden">
+
+    <header class="bg-[#0073B7] text-white px-3 sm:px-4 h-14 shadow-md z-10">
+        <div class="w-full h-full max-w-6xl mx-auto flex items-center gap-3 sm:gap-6 min-w-0">
+            <div class="bg-[#005a91] h-14 px-2 sm:px-4 flex items-center justify-center shrink-0">
+                <img src="../Media/logo-bk.png" alt="Logo" class="h-8 sm:h-10 w-auto object-contain">
+            </div>
+
+            <div class="ml-auto text-xs sm:text-sm whitespace-nowrap shrink-0">
+                <span class="hidden sm:inline">English (en) ▾</span>
+                <span class="sm:ml-4 font-semibold">Log in</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-5 sm:p-8 text-center fade-in">
+            <img src="../Media/logo-bk.png" alt="HCMUT Logo" class="h-24 sm:h-24 w-auto mx-auto mb-4">
+            
+            <div id="step-select-role" class="block">
+                <h2 class="text-lg text-blue-800 mb-4">Log in using your account on:</h2>
+                <div class="space-y-3">
+                    <button onclick="showLoginForm('STUDENT')" class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded p-3 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                        <i class="ph-fill ph-student text-blue-600 text-lg"></i> Tài khoản HCMUT (HCMUT account)
+                    </button>
+                    <button onclick="showLoginForm('ADMIN')" class="w-full border border-gray-300 rounded p-3 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                        Admin / Operator
+                    </button>
+                </div>
+                <div class="mt-8 text-left">
+                    <button class="bg-[#005a91] text-white text-xs px-3 py-1.5 rounded">Cookies notice</button>
+                </div>
+            </div>
+
+            <form id="step-login-form" class="hidden space-y-4 text-left">
+                <h2 id="login-title" class="text-lg text-blue-800 mb-4 text-center font-bold">Đăng nhập</h2>
+                
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Email</label>
+                    <input type="email" id="email-input" class="w-full border rounded p-2 outline-none focus:border-blue-500" value="hao.tran@hcmut.edu.vn" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Password</label>
+                    <input type="password" class="w-full border rounded p-2 outline-none focus:border-blue-500" value="123456" required>
+                </div>
+                
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="hideLoginForm()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded font-semibold hover:bg-gray-300 transition">Quay lại</button>
+                    <button type="submit" class="flex-1 bg-[#0073B7] text-white py-2 rounded font-semibold hover:bg-[#005a91] transition">Log in</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <footer class="bg-[#4a5a6a] text-white p-5 sm:p-8 text-sm">
+        <h3 class="font-bold mb-2 text-base">Tổ kỹ thuật / Technician</h3>
+        <p class="mb-4 text-gray-300">Email: ddthu@hcmut.edu.vn</p>
+        <p class="text-gray-300 text-xs italic leading-relaxed max-w-4xl">Quý Thầy/Cô chưa có tài khoản (hoặc quên mật khẩu) nhà trường vui lòng liên hệ Trung tâm Dữ liệu & Công nghệ Thông tin, nhà A5 - phòng 107 để được hỗ trợ.</p>
+    </footer>
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="../backend/auth.js"></script>
+</body>
+</html>

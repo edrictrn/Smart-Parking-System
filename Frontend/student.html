@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Portal - HCMUT Smart Parking</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex h-screen overflow-hidden text-gray-800 bg-gray-50">
+
+    <aside class="w-64 bg-white border-r flex flex-col justify-between hidden md:flex z-10 shadow-sm">
+        <div>
+            <div class="h-16 flex items-center px-6 border-b">
+                <i class="ph-fill ph-car-profile text-3xl text-blue-600 mr-2"></i>
+                <span class="text-xl font-bold text-blue-900">IoT-SPMS</span>
+            </div>
+            <nav class="p-4 space-y-2">
+                <button id="btn-tab-dashboard" class="w-full flex items-center gap-3 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg font-medium transition">
+                    <i class="ph ph-squares-four text-xl"></i> Theo dõi Bãi đỗ
+                </button>
+                <button id="btn-tab-history" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg font-medium transition">
+                    <i class="ph ph-receipt text-xl"></i> Lịch sử Gửi xe
+                </button>
+                <button id="btn-tab-profile" class="w-full flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg font-medium transition">
+                    <i class="ph ph-user-circle text-xl"></i> Cá nhân
+                </button>
+            </nav>
+        </div>
+        <div class="p-4 border-t">
+            <button id="btn-logout" class="flex items-center justify-center gap-3 w-full bg-red-50 text-red-600 hover:bg-red-100 px-4 py-3 rounded-lg font-bold transition">
+                <i class="ph-bold ph-sign-out text-xl"></i> Đăng xuất
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden">
+        
+        <header class="h-16 bg-white border-b flex items-center justify-between px-6 z-10 shadow-sm">
+            <h2 class="text-xl font-semibold text-gray-800" id="header-title">Theo dõi Bãi đỗ</h2>
+            <div class="flex items-center gap-3 pl-4 border-l">
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-800">Trần Quốc Hào</p>
+                    <p class="text-xs text-blue-600 font-semibold">Sinh viên</p>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold border border-blue-200">HQ</div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-auto p-4 md:p-6 lg:p-8">
+            
+            <div id="tab-dashboard" class="fade-in block">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col">
+                        <div class="flex border-b overflow-x-auto hide-scrollbar" id="zone-tabs">
+                            </div>
+                        <div class="p-6 flex-1 bg-gray-50/50">
+                            <div class="flex justify-between items-end mb-4">
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800" id="zone-title">Khu A - Sân trước</h3>
+                                    <p class="text-sm text-green-600"><i class="ph-fill ph-check-circle"></i> Trực tiếp từ IoT Sensor</p>
+                                </div>
+                                <div class="bg-white px-3 py-1.5 rounded shadow-sm border flex gap-3 text-sm font-medium">
+                                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-green-500"></span> Trống</div>
+                                    <div class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-gray-300"></span> Có xe</div>
+                                </div>
+                            </div>
+                            <div id="slots-grid" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-3"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6 h-fit relative overflow-hidden">
+                        <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-50 rounded-full z-0"></div>
+                        <div class="relative z-10">
+                            <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center gap-2">
+                                <i class="ph-fill ph-wallet text-blue-600"></i> Công nợ kỳ này
+                            </h3>
+                            <div class="bg-gradient-to-r from-blue-600 to-blue-800 rounded-lg p-5 text-white mb-6 shadow">
+                                <p class="text-blue-100 text-sm mb-1">Tổng tiền thanh toán</p>
+                                <p class="text-3xl font-bold" id="debt-display">45,000 <span class="text-lg font-normal">VNĐ</span></p>
+                            </div>
+                            <button id="btn-pay" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition shadow-sm flex justify-center items-center gap-2">
+                                <i class="ph-bold ph-credit-card"></i> Thanh toán qua BKPay
+                            </button>
+                            <div id="no-debt-msg" class="hidden text-center p-3 bg-green-50 text-green-700 rounded-lg font-semibold border border-green-200 flex justify-center items-center gap-2">
+                                <i class="ph-fill ph-check-circle"></i> Bạn không có nợ!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-history" class="fade-in hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                        <h3 class="text-lg font-bold text-gray-800">Lịch sử ra vào cổng</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-gray-600 text-sm uppercase tracking-wider border-b">
+                                    <th class="p-4 font-semibold">Ngày</th>
+                                    <th class="p-4 font-semibold">Vào</th>
+                                    <th class="p-4 font-semibold">Ra</th>
+                                    <th class="p-4 font-semibold">Vị trí</th>
+                                    <th class="p-4 font-semibold">Trạng thái phí</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-gray-700">
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="p-4">18/04/2026</td>
+                                    <td class="p-4 font-medium">07:15 AM</td>
+                                    <td class="p-4 font-medium text-gray-400">Chưa ra</td>
+                                    <td class="p-4"><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded text-sm font-bold">A05</span></td>
+                                    <td class="p-4"><span class="text-yellow-600 font-semibold">• Đang ghi nhận</span></td>
+                                </tr>
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="p-4">17/04/2026</td>
+                                    <td class="p-4">08:30 AM</td>
+                                    <td class="p-4">17:45 PM</td>
+                                    <td class="p-4"><span class="bg-gray-100 px-2 py-1 rounded text-sm font-bold">C12</span></td>
+                                    <td class="p-4"><span class="text-gray-600 font-semibold">✓ Đã cộng dồn</span></td>
+                                </tr>
+                                <tr class="hover:bg-gray-50">
+                                    <td class="p-4">16/04/2026</td>
+                                    <td class="p-4">09:00 AM</td>
+                                    <td class="p-4">12:15 PM</td>
+                                    <td class="p-4"><span class="bg-gray-100 px-2 py-1 rounded text-sm font-bold">A20</span></td>
+                                    <td class="p-4"><span class="text-green-600 font-semibold">✓ Đã thanh toán</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tab-profile" class="fade-in hidden">
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 max-w-3xl mx-auto mt-4">
+                    <div class="flex items-center gap-6 mb-8 pb-8 border-b">
+                        <div class="w-24 h-24 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-4xl font-bold border-4 border-white shadow-md">HQ</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-gray-800">Trần Quốc Hào</h2>
+                            <p class="text-gray-500">Khoa Khoa học và Kỹ thuật Máy tính (CSE)</p>
+                            <span class="inline-block mt-2 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Tài khoản hoạt động</span>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-1">Mã số sinh viên</label>
+                            <div class="px-4 py-3 bg-gray-50 border rounded-lg font-medium text-gray-800">2352299</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-1">Email trường</label>
+                            <div class="px-4 py-3 bg-gray-50 border rounded-lg font-medium text-gray-800">hao.tran@hcmut.edu.vn</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-1">Mã Thẻ Sinh Viên (RFID)</label>
+                            <div class="px-4 py-3 bg-gray-50 border rounded-lg font-medium text-gray-800 font-mono">E4:2A:98:1F</div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-500 mb-1">Biển số xe đăng ký (Có thể sửa)</label>
+                            <input type="text" value="66-P1 123.45" class="w-full px-4 py-3 bg-white border border-gray-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-lg font-medium text-gray-800 outline-none transition">
+                        </div>
+                    </div>
+                    <div class="mt-8 text-right">
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition shadow-sm">Lưu cập nhật</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="bkpay-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-xl w-full max-w-sm overflow-hidden shadow-2xl">
+            <div class="bg-blue-900 p-4 text-center">
+                <img src="../Media/logo-bk.png" class="h-20 sm:h-15 w-auto mx-auto" alt="BK">
+            </div>
+            <div class="p-6 text-center" id="bkpay-content">
+                <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-blue-600 text-3xl"><i class="ph-fill ph-invoice"></i></div>
+                <h4 class="font-bold text-gray-800 mb-1">Xác nhận thanh toán</h4>
+                <p class="text-gray-500 text-sm mb-6">Bạn đang thanh toán công nợ bãi xe với số tiền <strong class="text-blue-600 text-lg">45,000đ</strong>.</p>
+                <div class="flex gap-3">
+                    <button id="btn-cancel-pay" class="flex-1 bg-gray-100 py-2.5 rounded text-gray-700 font-semibold hover:bg-gray-200">Hủy</button>
+                    <button id="btn-confirm-pay" class="flex-1 bg-blue-600 text-white py-2.5 rounded font-semibold hover:bg-blue-700">Xác nhận</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../backend/auth.js"></script>
+    <script src="../backend/student.js"></script>
+</body>
+</html>
