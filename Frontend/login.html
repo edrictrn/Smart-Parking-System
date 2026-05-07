@@ -16,8 +16,7 @@
             </div>
 
             <div class="ml-auto text-xs sm:text-sm whitespace-nowrap shrink-0">
-                <span class="hidden sm:inline">English (en) ▾</span>
-                <span class="sm:ml-4 font-semibold">Log in</span>
+
             </div>
         </div>
     </header>
@@ -29,15 +28,20 @@
             <div id="step-select-role" class="block">
                 <h2 class="text-lg text-blue-800 mb-4">Log in using your account on:</h2>
                 <div class="space-y-3">
-                    <button onclick="showLoginForm('STUDENT')" class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded p-3 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
-                        <i class="ph-fill ph-student text-blue-600 text-lg"></i> Tài khoản HCMUT (HCMUT account)
+                    <button onclick="showLoginForm('CAMPUS_USER')" class="w-full flex items-center justify-center gap-2 border border-gray-300 rounded p-3 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
+                        <i class="ph-fill ph-student text-blue-600 text-lg"></i> Tài khoản HCMUT: Learner / Faculty / Staff
                     </button>
                     <button onclick="showLoginForm('ADMIN')" class="w-full border border-gray-300 rounded p-3 hover:bg-gray-50 transition text-sm font-medium text-gray-700">
-                        Admin / Operator
+                        Admin / Parking Operator
                     </button>
                 </div>
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-xs text-gray-500 mb-2">Khách vãng lai / Quên thẻ?</p>
+                    <a href="lookup.html" class="block w-full border border-amber-300 bg-amber-50 text-amber-800 rounded p-3 hover:bg-amber-100 transition text-sm font-medium">
+                        <i class="ph-fill ph-magnifying-glass mr-1"></i> Tra cứu giao dịch bằng mã vé tạm
+                    </a>
+                </div>
                 <div class="mt-8 text-left">
-                    <button class="bg-[#005a91] text-white text-xs px-3 py-1.5 rounded">Cookies notice</button>
                 </div>
             </div>
 
@@ -46,12 +50,21 @@
                 
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Email</label>
-                    <input type="email" id="email-input" class="w-full border rounded p-2 outline-none focus:border-blue-500" value="hao.tran@hcmut.edu.vn" required>
+                    <input type="text" id="email-input" class="w-full border rounded p-2 outline-none focus:border-blue-500" required>
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Password</label>
-                    <input type="password" class="w-full border rounded p-2 outline-none focus:border-blue-500" value="123456" required>
-                </div>
+                <div class="mb-4">
+    <label class="block text-sm text-gray-600 mb-1">Password</label>
+    <div class="relative">
+        <input type="password" id="password-input" class="w-full border rounded p-2 outline-none focus:border-blue-500 pr-10" required>
+        
+        <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 px-3 flex items-center text-gray-500 hover:text-blue-500 transition">
+            <svg id="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+        </button>
+    </div>
+</div>
                 
                 <div class="pt-2 flex gap-3">
                     <button type="button" onclick="hideLoginForm()" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded font-semibold hover:bg-gray-300 transition">Quay lại</button>
@@ -68,6 +81,7 @@
     </footer>
 
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <script src="../backend/auth.js"></script>
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
 </body>
 </html>

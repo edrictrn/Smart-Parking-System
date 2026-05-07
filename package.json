@@ -1,0 +1,27 @@
+{
+  "name": "iot-spms-fixed",
+  "version": "2.0.0",
+  "description": "HCMUT IoT Smart Parking Management System MVP with role-based pricing, visitor tickets, DataCore/BKPay mocks, and reduced hardcoding.",
+  "main": "Backend/server.js",
+  "scripts": {
+    "start": "node Backend/server.js",
+    "dev": "nodemon Backend/server.js",
+    "prisma:generate": "prisma generate",
+    "prisma:validate": "prisma validate",
+    "db:push": "prisma db push"
+  },
+  "keywords": ["iot", "smart-parking", "hcmut", "software-engineering"],
+  "author": "SE252 IoT-SPMS Team",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "nodemon": "^3.1.14"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  }
+}

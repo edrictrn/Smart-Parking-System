@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu vé tạm | IoT-SPMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flex flex-col min-h-screen bg-[#f0f2f5] font-sans">
+
+    <header class="bg-[#0073B7] text-white px-3 sm:px-4 h-14 shadow-md">
+        <div class="w-full h-full max-w-6xl mx-auto flex items-center gap-3 sm:gap-6">
+            <div class="bg-[#005a91] h-14 px-2 sm:px-4 flex items-center justify-center shrink-0">
+                <img src="../Media/logo-bk.png" alt="Logo" class="h-8 sm:h-10 w-auto object-contain">
+            </div>
+            <h1 class="font-bold text-sm sm:text-base">IoT-SPMS - Tra cứu vé tạm</h1>
+            <a href="login.html" class="ml-auto text-xs sm:text-sm hover:underline">← Trang đăng nhập</a>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-3xl w-full mx-auto p-4 sm:p-6">
+        <div class="bg-white rounded-xl shadow p-5 sm:p-8 fade-in">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">Tra cứu giao dịch khách vãng lai</h2>
+            <p class="text-sm text-gray-500 mb-5">Nhập <strong>mã vé tạm</strong> được phát tại cổng (ví dụ: <code class="bg-gray-100 px-1 rounded">TMP-DEMO-CLOSED-001</code>) để xem thông tin gửi xe và biên lai thanh toán.</p>
+
+            <form id="lookup-form" class="flex flex-col sm:flex-row gap-3">
+                <input type="text" id="ticket-input" placeholder="Nhập mã vé tạm..."
+                       class="flex-1 border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-blue-500 font-mono text-sm uppercase tracking-wide" required>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-lg shadow-sm">
+                    Tra cứu
+                </button>
+            </form>
+
+            <div id="message" class="mt-4 hidden p-3 rounded-lg text-sm font-medium"></div>
+        </div>
+
+        <div id="result-area" class="hidden mt-6 space-y-4"></div>
+    </main>
+
+    <footer class="bg-[#4a5a6a] text-white p-5 sm:p-6 text-xs">
+        <p class="text-gray-300">Hỗ trợ: ddthu@hcmut.edu.vn — Phòng 107 nhà A5</p>
+    </footer>
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="config.js"></script>
+    <script>
+        const form = document.getElementById('lookup-form');
+        const input = document.getElementById('ticket-input');
+        const msgBox = document.getElementById('message');
+        const resultArea = document.getElementById('result-area');
+
+        function showMessage(text, type = 'error') {
+            msgBox.classList.remove('hidden', 'bg-red-50', 'text-red-700', 'bg-green-50', 'text-green-700', 'bg-yellow-50', 'text-yellow-700');
+            const cls = type === 'error' ? ['bg-red-50', 'text-red-700']
+                      : type === 'success' ? ['bg-green-50', 'text-green-700']
+                      : ['bg-yellow-50', 'text-yellow-700'];
+            msgBox.classList.add(...cls);
+            msgBox.innerText = text;
+        }
+
+        function hideMessage() {
+            msgBox.classList.add('hidden');
+        }
+
+        function fmtDateTime(ts) {
+            if (!ts) return '—';
+            return new Date(ts).toLocaleString('vi-VN');
+        }
+
+        function fmtMoney(n) {
+            return `${Number(n || 0).toLocaleString('vi-VN')} VNĐ`;
+        }
+
+        function statusBadge(status) {
+            const map = {
+                Active: 'bg-yellow-100 text-yellow-800 border-yellow-300',
+                Closed: 'bg-green-100 text-green-800 border-green-300',
+                Parked: 'bg-blue-100 text-blue-800 border-blue-300',
+                Completed: 'bg-green-100 text-green-800 border-green-300',
+                Paid: 'bg-green-100 text-green-800 border-green-300',
+                PaymentReady: 'bg-amber-100 text-amber-800 border-amber-300',
+                Failed: 'bg-red-100 text-red-800 border-red-300'
+            };
+            return `<span class="border ${map[status] || 'bg-gray-100 text-gray-700 border-gray-300'} px-2 py-0.5 rounded-full text-xs font-bold">${status}</span>`;
+        }
+
+        function renderResult(data) {
+            const t = data.ticket;
+            const sessionsHtml = data.sessions.length === 0
+                ? `<p class="text-sm text-gray-500 italic">Chưa có phiên gửi xe nào liên kết với vé này.</p>`
+                : `<table class="w-full text-sm border-collapse">
+                    <thead class="bg-gray-50"><tr>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Slot</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Khu</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Vào</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Ra</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Phí</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Trạng thái</th>
+                    </tr></thead>
+                    <tbody>
+                        ${data.sessions.map(s => `<tr class="border-b">
+                            <td class="p-2 font-mono">#${s.slot_id || '—'}</td>
+                            <td class="p-2">${s.zone || '—'}</td>
+                            <td class="p-2">${fmtDateTime(s.check_in_time)}</td>
+                            <td class="p-2">${fmtDateTime(s.check_out_time)}</td>
+                            <td class="p-2 font-bold">${fmtMoney(s.fee_calculated)}</td>
+                            <td class="p-2">${statusBadge(s.status)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+
+            const txnsHtml = data.transactions.length === 0
+                ? `<p class="text-sm text-gray-500 italic">Chưa có giao dịch tài chính nào.</p>`
+                : `<table class="w-full text-sm border-collapse">
+                    <thead class="bg-gray-50"><tr>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Mã GD</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Loại</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Số tiền</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Mã BKPay</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Thanh toán lúc</th>
+                        <th class="text-left p-2 border-b font-semibold text-gray-600">Trạng thái</th>
+                    </tr></thead>
+                    <tbody>
+                        ${data.transactions.map(tx => `<tr class="border-b">
+                            <td class="p-2 font-mono">#${tx.transaction_id}</td>
+                            <td class="p-2">${tx.transaction_type}</td>
+                            <td class="p-2 font-bold text-green-700">${fmtMoney(tx.amount)}</td>
+                            <td class="p-2 font-mono text-xs">${tx.bkpay_ref_id || '—'}</td>
+                            <td class="p-2">${fmtDateTime(tx.paid_at || tx.created_at)}</td>
+                            <td class="p-2">${statusBadge(tx.status)}</td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+
+            const totalPaid = data.transactions
+                .filter(tx => tx.status === 'Paid')
+                .reduce((sum, tx) => sum + Number(tx.amount || 0), 0);
+
+            resultArea.innerHTML = `
+                <div class="bg-white rounded-xl shadow p-5 fade-in">
+                    <div class="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold">Mã vé tạm</p>
+                            <p class="text-2xl font-black text-gray-900 font-mono">${t.ticket_code}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs text-gray-500 uppercase font-bold">Trạng thái</p>
+                            <p class="mt-1">${statusBadge(t.status)}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                        <div><p class="text-gray-500 text-xs">Slot</p><p class="font-bold">#${t.slot_id || '—'}</p></div>
+                        <div><p class="text-gray-500 text-xs">Khu</p><p class="font-bold">${t.zone || '—'}</p></div>
+                        <div><p class="text-gray-500 text-xs">Phát vé lúc</p><p class="font-bold">${fmtDateTime(t.issued_at)}</p></div>
+                        <div><p class="text-gray-500 text-xs">Đóng vé lúc</p><p class="font-bold">${fmtDateTime(t.closed_at)}</p></div>
+                    </div>
+                    <div class="mt-4 p-3 bg-blue-50 rounded-lg flex justify-between items-center">
+                        <span class="text-sm text-blue-700 font-semibold">Tổng đã thanh toán</span>
+                        <span class="text-lg font-black text-blue-800">${fmtMoney(totalPaid)}</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-5">
+                    <h3 class="font-bold text-gray-800 mb-3"><i class="ph-fill ph-car mr-1 text-blue-600"></i>Phiên gửi xe</h3>
+                    <div class="overflow-x-auto">${sessionsHtml}</div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow p-5">
+                    <h3 class="font-bold text-gray-800 mb-3"><i class="ph-fill ph-receipt mr-1 text-green-600"></i>Giao dịch / Biên lai</h3>
+                    <div class="overflow-x-auto">${txnsHtml}</div>
+                    <div class="mt-4 flex justify-end">
+                        <button onclick="window.print()" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-semibold">
+                            <i class="ph-bold ph-printer mr-1"></i> In biên lai
+                        </button>
+                    </div>
+                </div>
+            `;
+            resultArea.classList.remove('hidden');
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideMessage();
+            resultArea.classList.add('hidden');
+
+            const ticketCode = input.value.trim();
+            if (!ticketCode) return;
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerText;
+            submitBtn.innerText = 'Đang tra cứu...';
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/api/visitor/lookup/${encodeURIComponent(ticketCode)}`);
+                const data = await res.json();
+                if (!data.success) {
+                    showMessage(data.message || 'Không tìm thấy vé này.', 'error');
+                } else {
+                    renderResult(data.data);
+                }
+            } catch (err) {
+                showMessage('Lỗi kết nối server. Hãy kiểm tra lại mạng.', 'error');
+            }
+
+            submitBtn.innerText = originalText;
+            submitBtn.disabled = false;
+        });
+
+        // Auto-fill from query string ?code=...
+        const urlCode = new URLSearchParams(window.location.search).get('code');
+        if (urlCode) {
+            input.value = urlCode;
+            form.dispatchEvent(new Event('submit'));
+        }
+    </script>
+</body>
+</html>

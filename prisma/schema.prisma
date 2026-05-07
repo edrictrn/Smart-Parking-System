@@ -1,0 +1,165 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  Learner
+  Faculty
+  Staff
+  Visitor
+  ParkingOperator
+  Admin
+}
+
+enum SlotStatus {
+  EMPTY
+  OCCUPIED
+  UNKNOWN
+  OUT_OF_SERVICE
+}
+
+enum SessionStatus {
+  Parked
+  Completed
+  Cancelled
+}
+
+enum SessionSource {
+  CARD
+  TEMPORARY_TICKET
+  MANUAL
+}
+
+enum TicketStatus {
+  Active
+  Closed
+  Lost
+  Cancelled
+}
+
+enum TransactionStatus {
+  PaymentReady
+  Processing
+  Paid
+  Failed
+  Cancelled
+  Pending
+}
+
+enum TransactionType {
+  LearnerBilling
+  VisitorImmediate
+  ManualAdjustment
+}
+
+model Users {
+  user_id          Int                @id @default(autoincrement())
+  student_id       String             @unique @db.VarChar(50)
+  full_name        String             @db.VarChar(100)
+  email            String             @unique @db.VarChar(100)
+  password         String             @db.VarChar(255)
+  role             Role               @default(Learner)
+  rfid             String?            @unique @db.VarChar(50)
+  license_plate    String?            @db.VarChar(50)
+  accumulated_debt Int?               @default(0)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  updated_at       DateTime           @updatedAt @db.Timestamp(0)
+  parking_sessions Parking_sessions[]
+  transactions     Transactions[]
+  operation_logs   Operation_logs[]
+
+  @@map("Users")
+}
+
+model Parking_slots {
+  slot_id           Int                @id @default(autoincrement())
+  zone              String             @db.VarChar(50)
+  status            SlotStatus?        @default(UNKNOWN)
+  sensor_mac        String?            @unique @db.VarChar(50)
+  last_updated      DateTime           @updatedAt @db.Timestamp(0)
+  parking_sessions  Parking_sessions[]
+  temporary_tickets Temporary_tickets[]
+
+  @@map("Parking_slots")
+}
+
+model Parking_sessions {
+  session_id          Int               @id @default(autoincrement())
+  user_id             Int?
+  slot_id             Int?
+  visitor_ticket_code String?           @db.VarChar(80)
+  check_in_time       DateTime?         @default(now()) @db.Timestamp(0)
+  check_out_time      DateTime?         @db.Timestamp(0)
+  status              SessionStatus?    @default(Parked)
+  source              SessionSource?    @default(CARD)
+  fee_calculated      Int?              @default(0)
+  users               Users?            @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  parking_slots       Parking_slots?    @relation(fields: [slot_id], references: [slot_id], onDelete: SetNull)
+  transactions        Transactions[]
+
+  @@index([user_id, status], map: "idx_session_user_status")
+  @@index([visitor_ticket_code, status], map: "idx_session_ticket_status")
+  @@map("Parking_sessions")
+}
+
+model Temporary_tickets {
+  ticket_id   Int            @id @default(autoincrement())
+  ticket_code String         @unique @db.VarChar(80)
+  slot_id     Int?
+  issued_at   DateTime?      @default(now()) @db.Timestamp(0)
+  closed_at   DateTime?      @db.Timestamp(0)
+  status      TicketStatus?  @default(Active)
+  fee_paid    Int?           @default(0)
+  parking_slots Parking_slots? @relation(fields: [slot_id], references: [slot_id], onDelete: SetNull)
+
+  @@map("Temporary_tickets")
+}
+
+model Transactions {
+  transaction_id   Int                @id @default(autoincrement())
+  user_id          Int?
+  session_id       Int?
+  ticket_code      String?            @db.VarChar(80)
+  amount           Int
+  bkpay_ref_id     String?            @db.VarChar(100)
+  status           TransactionStatus? @default(PaymentReady)
+  transaction_type TransactionType?   @default(LearnerBilling)
+  billing_cycle    String?            @db.VarChar(7)
+  description      String?            @db.VarChar(255)
+  created_at       DateTime?          @default(now()) @db.Timestamp(0)
+  paid_at          DateTime?          @db.Timestamp(0)
+  users            Users?             @relation(fields: [user_id], references: [user_id], onDelete: SetNull)
+  parking_sessions Parking_sessions?  @relation(fields: [session_id], references: [session_id], onDelete: SetNull)
+
+  @@index([status], map: "idx_transaction_status")
+  @@index([created_at], map: "idx_transaction_created_at")
+  @@index([paid_at], map: "idx_transaction_paid_at")
+  @@index([billing_cycle], map: "idx_transaction_billing_cycle")
+  @@map("Transactions")
+}
+
+model System_config {
+  config_key   String    @id @db.VarChar(80)
+  config_value String    @db.VarChar(255)
+  updated_at   DateTime  @updatedAt @db.Timestamp(0)
+
+  @@map("System_config")
+}
+
+model Operation_logs {
+  log_id     Int       @id @default(autoincrement())
+  actor_id   Int?
+  action     String    @db.VarChar(100)
+  detail     String?   @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  users      Users?    @relation(fields: [actor_id], references: [user_id], onDelete: SetNull)
+
+  @@index([action], map: "idx_log_action")
+  @@index([created_at], map: "idx_log_created_at")
+  @@map("Operation_logs")
+}
